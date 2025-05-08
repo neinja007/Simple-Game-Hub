@@ -1,194 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="../style.css" />
+		<title>SimpleGames</title>
+	</head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../style.css">
-    <title>SimpleGames</title>
-</head>
+	<body>
+		<h1><a href="../index.html">SimpleGames.web.app</a> - TicTacToe</h1>
 
-<body>
-    <h1><a href="../index.html">SimpleGames.web.app</a> - TicTacToe</h1>
+		<canvas id="canvas" width="330" height="330"></canvas><br />
+		<h3 id="information"><b style="color: red">RED</b>'s turn!</h3>
+		<button id="restart" class="big" onclick="window.location.reload()" hidden>RESTART</button>
 
-    <canvas id="canvas" width="330" height="330"></canvas><br>
-    <h3 id="information"><b style='color:red'>RED</b>'s turn!</h3>
-    <button id="restart" class="big" onclick="window.location.reload()" hidden>RESTART</button>
+		<script>
+			var board = [
+				[null, null, null],
+				[null, null, null],
+				[null, null, null]
+			];
 
-    <script>
-        var board = [
-            [null, null, null],
-            [null, null, null],
-            [null, null, null]];
+			let active = true;
+			let gameOver = false;
 
-        let active = true;
-        let gameOver = false;
+			let selected_square = { x: -1, y: -1 };
 
-        let selected_square = { x: -1, y: -1 }
+			// true represents red, false represents green
 
-        // true represents red, false represents green
+			let canvas = document.getElementById('canvas');
+			let ctx = canvas.getContext('2d');
 
-        let canvas = document.getElementById("canvas");
-        let ctx = canvas.getContext("2d");
+			function fillSquare(element, color = 'black') {
+				ctx.fillStyle = 'black';
+				ctx.fill(element);
+				ctx.fillStyle = color;
+				ctx.fill(element);
+			}
 
-        function fillSquare(element, color = "black") {
-            ctx.fillStyle = "black";
-            ctx.fill(element);
-            ctx.fillStyle = color;
-            ctx.fill(element);
-        }
+			build();
 
-        build();
+			function build() {
+				// border
 
-        function build() {
+				if (active) {
+					ctx.fillStyle = 'red';
+				} else {
+					ctx.fillStyle = 'green';
+				}
 
-            // border
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (active) {
-                ctx.fillStyle = "red";
-            }
-            else {
-                ctx.fillStyle = "green";
-            }
+				// board
 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.fillStyle = 'black';
+				ctx.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
 
-            // board
+				// grid
 
-            ctx.fillStyle = "black";
-            ctx.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
+				ctx.fillStyle = 'white';
+				for (let i = 14; i < canvas.width; i += 100) {
+					ctx.fillRect(14, i, canvas.width - 28, 2);
+					ctx.fillRect(i, 14, 2, canvas.height - 28);
+				}
 
-            // grid
+				// positions
 
-            ctx.fillStyle = "white";
-            for (let i = 14; i < canvas.width; i += 100) {
-                ctx.fillRect(14, i, canvas.width - 28, 2);
-                ctx.fillRect(i, 14, 2, canvas.height - 28);
-            }
+				var x = 20;
+				var y = 20;
 
-            // positions
+				for (row of board) {
+					x = 20;
+					for (pos of row) {
+						ctx.fillStyle = 'black';
+						ctx.fillRect(x, y, 90, 90);
 
-            var x = 20;
-            var y = 20;
+						let circle = new Path2D();
+						circle.arc(x + 45, y + 45, 45, 0, 2 * Math.PI);
 
-            for (row of board) {
-                x = 20;
-                for (pos of row) {
-                    ctx.fillStyle = "black";
-                    ctx.fillRect(x, y, 90, 90);
+						if (pos === true) {
+							ctx.fillStyle = 'red';
+						} else if (pos === false) {
+							ctx.fillStyle = 'green';
+						}
 
-                    let circle = new Path2D();
-                    circle.arc(x + 45, y + 45, 45, 0, 2 * Math.PI)
+						ctx.fill(circle);
 
-                    if (pos === true) {
-                        ctx.fillStyle = "red";
-                    }
-                    else if (pos === false) {
-                        ctx.fillStyle = "green";
-                    }
+						x += 100;
+					}
+					y += 100;
+				}
+			}
 
-                    ctx.fill(circle);
+			for (let i = 0; i < 3; i++) {
+				for (let j = 0; j < 3; j++) {
+					const Circle = new Path2D();
+					Circle.arc(i * 100 + 65, j * 100 + 65, 45, 0, 2 * Math.PI);
+					Circle.x = i;
+					Circle.y = j;
+					ctx.fill(Circle);
+					canvas.addEventListener('mousemove', function (event) {
+						if (gameOver == true) {
+							return;
+						}
+						if (ctx.isPointInPath(Circle, event.offsetX, event.offsetY)) {
+							if (board[Circle.y][Circle.x] == null) {
+								if (active === true) {
+									fillSquare(Circle, 'rgb(255,0,0,0.5)');
+								} else {
+									fillSquare(Circle, 'rgb(0,255,0,0.35)');
+								}
+							}
+						} else {
+							if (board[Circle.y][Circle.x] == null) {
+								fillSquare(Circle);
+							}
+						}
+					});
+					canvas.addEventListener('mousedown', function (event) {
+						if (gameOver == true) {
+							return;
+						}
+						if (ctx.isPointInPath(Circle, event.offsetX, event.offsetY)) {
+							if (board[Circle.y][Circle.x] == null) {
+								board[Circle.y][Circle.x] = active;
 
-                    x += 100;
-                }
-                y += 100;
-            }
-        }
+								checkWin();
 
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                const Circle = new Path2D();
-                Circle.arc(i * 100 + 65, j * 100 + 65, 45, 0, 2 * Math.PI);
-                Circle.x = i;
-                Circle.y = j;
-                ctx.fill(Circle);
-                canvas.addEventListener("mousemove", function (event) {
-                    if (gameOver == true) {
-                        return
-                    }
-                    if (ctx.isPointInPath(Circle, event.offsetX, event.offsetY)) {
-                        if (board[Circle.y][Circle.x] == null) {
-                            if (active === true) {
-                                fillSquare(Circle, "rgb(255,0,0,0.5)")
-                            }
-                            else {
-                                fillSquare(Circle, "rgb(0,255,0,0.35)")
-                            }
-                        }
-                    }
-                    else {
-                        if (board[Circle.y][Circle.x] == null) {
-                            fillSquare(Circle);
-                        }
-                    }
-                })
-                canvas.addEventListener("mousedown", function (event) {
-                    if (gameOver == true) {
-                        return
-                    }
-                    if (ctx.isPointInPath(Circle, event.offsetX, event.offsetY)) {
-                        if (board[Circle.y][Circle.x] == null) {
-                            board[Circle.y][Circle.x] = active;
+								if (gameOver == false) {
+									if (active) {
+										active = false;
+									} else {
+										active = true;
+									}
+								}
 
-                            checkWin();
+								build();
 
-                            if (gameOver == false) {
-                                if (active) { active = false } else { active = true }
-                            }
+								if (gameOver == true) {
+									return;
+								}
 
-                            build();
+								if (active) {
+									document.getElementById('information').innerHTML = "<b style='color:red'>RED</b>'s turn!";
+								} else {
+									document.getElementById('information').innerHTML = "<b style='color:green'>GREEN</b>'s turn!";
+								}
+							} else {
+								document.getElementById('information').innerHTML = "<b style='color:orange'>Invalid</b> Move!";
+							}
+						}
+					});
+				}
+			}
 
-                            if (gameOver == true) {
-                                return
-                            }
+			function checkWin() {
+				var winstring = '';
 
-                            if (active) {
-                                document.getElementById("information").innerHTML = "<b style='color:red'>RED</b>'s turn!";
-                            }
-                            else {
-                                document.getElementById("information").innerHTML = "<b style='color:green'>GREEN</b>'s turn!";
-                            }
-                        }
+				for (row of board) {
+					for (pos of row) {
+						if (pos) {
+							winstring += 'R';
+						} else if (pos === false) {
+							winstring += 'G';
+						} else {
+							winstring += 'X';
+						}
+					}
+					winstring += '-';
+				}
 
-                        else {
-                            document.getElementById("information").innerHTML = "<b style='color:orange'>Invalid</b> Move!";
-                        }
-                    }
-                })
-            }
-        }
+				for (i of [board[0][0], board[1][1], board[2][2], null, board[2][0], board[1][1], board[0][2]]) {
+					if (i) {
+						winstring += 'R';
+					} else if (i === false) {
+						winstring += 'G';
+					} else {
+						winstring += 'X';
+					}
+				}
 
-        function checkWin() {
+				if (winstring.includes('RRR')) {
+					document.getElementById('information').innerHTML = "<b style='color:red'>RED</b> has won!";
+					document.getElementById('restart').hidden = false;
+					gameOver = true;
+				} else if (winstring.includes('GGG')) {
+					document.getElementById('information').innerHTML = "<b style='color:green'>GREEN</b> has won!";
+					document.getElementById('restart').hidden = false;
+					gameOver = true;
+				}
 
-            var winstring = "";
-
-            for (row of board) {
-                for (pos of row) {
-                    if (pos) { winstring += "R" } else if (pos === false) { winstring += "G" } else { winstring += "X" }
-                }
-                winstring += "-"
-            }
-
-            for (i of [board[0][0], board[1][1], board[2][2], null, board[2][0], board[1][1], board[0][2]]) {
-                if (i) { winstring += "R" } else if (i === false) { winstring += "G" } else { winstring += "X" }
-            }
-
-            if (winstring.includes("RRR")) {
-                document.getElementById("information").innerHTML = "<b style='color:red'>RED</b> has won!"
-                document.getElementById("restart").hidden = false;
-                gameOver = true;
-            }
-            else if (winstring.includes("GGG")) {
-                document.getElementById("information").innerHTML = "<b style='color:green'>GREEN</b> has won!"
-                document.getElementById("restart").hidden = false;
-                gameOver = true;
-            }
-
-            console.log(winstring);
-        }
-    </script>
-
-</body>
-
+				console.log(winstring);
+			}
+		</script>
+	</body>
 </html>
